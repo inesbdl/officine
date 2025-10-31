@@ -1,6 +1,5 @@
 "use strict";
 
-const { NameNormalizer } = require("./NameNormalizer");
 const { RecipeBook, parseQuantityAndName } = require("./RecipeBook");
 const { Stock } = require("./Stock");
 
