@@ -1,34 +1,48 @@
 "use strict";
 
 function parseQuantityAndName(raw) {
-    if (typeof raw !== "string") throw new Error("entree invalide");
+    if (typeof raw !== "string") {
+        throw new Error("Entrée invalide");
+    }
+
     const cleaned = raw.trim();
-    const m = cleaned.match(/^(\d+)\s+(.+)$/);
-    if (!m) throw new Error("Format attendu: 'nombre nom'");
+    const m = cleaned.match(/^(-?\d+)\s+(.+)$/);
+    if (!m) {
+        throw new Error("Format attendu: 'nombre nom'")
+    }
+
     const qty = parseInt(m[1], 10);
-    if (!Number.isFinite(qty) || qty < 0) throw new Error("qte invalide");
+    if (!Number.isFinite(qty) || qty < 0) {
+        throw new Error("Quantité invalide")
+    }
+
     const name = m[2].trim();
     return { qty, name };
 }
 
 class RecipeBook {
-    constructor(recipesObject) {
+    constructor(recipesObject, normalizer) {
         this.compiled = new Map();
+        this.normalizer = normalizer
+
         for (const [potionName, reqList] of Object.entries(recipesObject)) {
             const needs = new Map();
+
             for (const item of reqList) {
                 const { qty, name } = parseQuantityAndName(item);
-                needs.set(name.trim(), (needs.get(name.trim()) || 0) + qty);
+                const normalizedReq = this.normalizer(name)
+                needs.set(normalizedReq, (needs.get(normalizedReq) || 0) + qty)
             }
-            this.compiled.set(potionName, needs);
+
+            const potionSingular = potionName.split("/")[0].trim();
+            const normalizedPotion = this.normalizer(potionSingular)
+            this.compiled.set(normalizedPotion, needs);
         }
     }
 
-    getRequirements(potionName) {
-        return this.compiled.get(potionName);
+    getRequirements(normalizedPotionName) {
+        return this.compiled.get(normalizedPotionName)
     }
 }
 
 module.exports = { RecipeBook, parseQuantityAndName };
-
-
